@@ -3,52 +3,167 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🛡️ PDF Redact Tool | EasyUseHub</title>
-<meta name="description" content="Securely redact sensitive text or areas in PDF files online. Free, mobile-friendly, multi-page PDF support. EasyUseHub PDF Tools.">
+<title>🛡️ PDF Redact Tool | Multi-Page & Multiple Boxes</title>
+<meta name="description" content="Redact sensitive text or areas in multi-page PDFs online. Free, mobile-friendly, multiple redact boxes per page. EasyUseHub PDF Tools.">
 <style>
-body { font-family: Arial, sans-serif; margin: 0; padding: 0; background:#f9f9f9; color:#333; }
-header { text-align:center; padding: 30px 10px; background:#9333ea; color:#fff; }
-header h1 { margin:0; font-size:2rem; }
-.container { max-width: 800px; margin: 20px auto; padding: 0 15px; }
-a.demo-btn { display:inline-block; background:#9333ea; color:#fff; padding:12px 25px; border-radius:8px; text-decoration:none; margin-bottom:20px; }
-h2 { color:#9333ea; margin-top:25px; }
-ul { margin-left:20px; }
-code { background:#eee; padding:2px 5px; border-radius:4px; }
+body { font-family: Arial,sans-serif; margin:0; padding:0; background:#f9f9f9; color:#333; }
+header { text-align:center; padding:20px; background:#9333ea; color:#fff; }
+header h1 { margin:0; }
+.container { max-width:900px; margin:20px auto; padding:0 15px; }
+#upload-box { border:3px dashed #9333ea; padding:20px; text-align:center; cursor:pointer; border-radius:10px; background:#fff; }
+#page-thumbnails { display:flex; flex-wrap:wrap; gap:10px; margin:20px 0; justify-content:center; }
+.thumbnail { border:1px solid #ccc; width:80px; height:100px; overflow:hidden; cursor:pointer; }
+#pdf-viewer { position:relative; width:100%; height:70vh; border:1px solid #ccc; overflow:auto; margin-bottom:20px; }
+#pdf-viewer canvas { display:block; width:100%; height:auto; }
+.crop-rect { position:absolute; border:2px dashed #9333ea; background:rgba(147,51,234,0.2); touch-action:none; }
+button { padding:10px 20px; margin:5px; border:none; border-radius:8px; background:#9333ea; color:#fff; cursor:pointer; }
+#toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#9333ea; color:#fff; padding:10px 20px; border-radius:8px; display:none; z-index:9999; }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>🛡️ PDF Redact Tool</h1>
+<h1>🛡️ PDF Redact Tool</h1>
 </header>
 
 <div class="container">
-  <a href="#" class="demo-btn">🔗 Live Demo</a>
-  
-  <p>Securely <strong>redact sensitive text or areas in PDF files</strong> online. Fully browser-based, free, and private — all editing happens locally in your browser. Perfect for both mobile and desktop users.</p>
-  
-  <h2>🚀 Features</h2>
-  <ul>
-    <li>Free online PDF redaction</li>
-    <li>Multi-page PDF support</li>
-    <li>Touch-friendly redact tool (drag, resize to select areas)</li>
-    <li>Maintain original PDF quality</li>
-    <li>Download notification when PDF is saved</li>
-    <li>Mobile & desktop ready</li>
-    <li>Simple navigation buttons: Home & All PDF Tools</li>
-  </ul>
-  
-  <h2>🧩 How to Use</h2>
-  <ol>
-    <li>Click <strong>Upload PDF</strong></li>
-    <li>Select page to redact</li>
-    <li>Drag and resize the <strong>redact box</strong> over sensitive text or areas</li>
-    <li>Click <strong>Download Redacted PDF</strong> — file saved with notification</li>
-  </ol>
-  
-  <h2>🏷️ SEO Keywords</h2>
-  <p><code>PDF Redact, Redact PDF Online, Secure PDF Editor, Remove PDF Text, Online PDF Redaction, Touch-Friendly PDF Editor, EasyUseHub PDF Tools</code></p>
+<div id="upload-box">📁 Upload PDF</div>
+<input type="file" id="fileInput" accept="application/pdf" hidden>
+
+<div id="page-thumbnails"></div>
+
+<div id="pdf-viewer"></div>
+
+<button id="prev-page">⬅ Prev</button>
+<button id="next-page">Next ➡</button>
+<button id="add-box">➕ Add Redact Box</button>
+<button id="download-pdf">📥 Download Redacted PDF</button>
+
+<div id="toast">PDF downloaded!</div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+<script>
+const uploadBox = document.getElementById('upload-box');
+const fileInput = document.getElementById('fileInput');
+const pageThumbnails = document.getElementById('page-thumbnails');
+const pdfViewer = document.getElementById('pdf-viewer');
+const prevBtn = document.getElementById('prev-page');
+const nextBtn = document.getElementById('next-page');
+const addBoxBtn = document.getElementById('add-box');
+const downloadBtn = document.getElementById('download-pdf');
+const toast = document.getElementById('toast');
+
+let pdfDoc = null, pdfBytes = null, currentPage = 1, scale = 1;
+let canvas = null;
+let redactions = {}; // { pageNum: [ {element: div, coords: {x,y,w,h}} ] }
+
+uploadBox.onclick = () => fileInput.click();
+
+fileInput.addEventListener('change', async e => {
+  const file = e.target.files[0];
+  if(!file) return;
+  pdfBytes = await file.arrayBuffer();
+  pdfDoc = await pdfjsLib.getDocument({data: pdfBytes}).promise;
+  pageThumbnails.innerHTML = '';
+  for(let i=1;i<=pdfDoc.numPages;i++){
+    const page = await pdfDoc.getPage(i);
+    const viewport = page.getViewport({scale:0.2});
+    const thumbCanvas = document.createElement('canvas');
+    thumbCanvas.width = viewport.width;
+    thumbCanvas.height = viewport.height;
+    await page.render({canvasContext: thumbCanvas.getContext('2d'), viewport}).promise;
+    const thumbDiv = document.createElement('div');
+    thumbDiv.className = 'thumbnail';
+    thumbDiv.appendChild(thumbCanvas);
+    thumbDiv.onclick = () => { currentPage=i; renderPage(i); };
+    pageThumbnails.appendChild(thumbDiv);
+  }
+  renderPage(1);
+});
+
+async function renderPage(pageNum){
+  const page = await pdfDoc.getPage(pageNum);
+  const viewport = page.getViewport({scale:1});
+  const containerWidth = pdfViewer.clientWidth;
+  scale = containerWidth / viewport.width;
+  const scaledViewport = page.getViewport({scale:scale});
+
+  if(canvas) canvas.remove();
+  canvas = document.createElement('canvas');
+  canvas.width = scaledViewport.width;
+  canvas.height = scaledViewport.height;
+  await page.render({canvasContext:canvas.getContext('2d'), viewport:scaledViewport}).promise;
+  pdfViewer.appendChild(canvas);
+
+  // Remove old boxes
+  pdfViewer.querySelectorAll('.crop-rect').forEach(e=>e.remove());
+
+  // Render existing boxes
+  if(redactions[pageNum]){
+    redactions[pageNum].forEach(r=>{
+      pdfViewer.appendChild(r.element);
+    });
+  }
+}
+
+addBoxBtn.onclick = ()=>{
+  const newBox = document.createElement('div');
+  newBox.className='crop-rect';
+  newBox.style.left='50px';
+  newBox.style.top='50px';
+  newBox.style.width='150px';
+  newBox.style.height='80px';
+  pdfViewer.appendChild(newBox);
+
+  interact(newBox).draggable({ listeners: { move(event){
+    const target = event.target;
+    const x = (parseFloat(target.getAttribute('data-x'))||0)+event.dx;
+    const y = (parseFloat(target.getAttribute('data-y'))||0)+event.dy;
+    target.style.left=x+'px'; target.style.top=y+'px';
+    target.setAttribute('data-x',x); target.setAttribute('data-y',y);
+  }}})
+  .resizable({ edges:{left:true,right:true,top:true,bottom:true},
+    listeners:{move(event){
+      let {width,height}=event.rect;
+      event.target.style.width=width+'px';
+      event.target.style.height=height+'px';
+    }}, modifiers:[interact.modifiers.restrictEdges({outer:pdfViewer})], inertia:true
+  });
+
+  if(!redactions[currentPage]) redactions[currentPage]=[];
+  redactions[currentPage].push({element:newBox});
+};
+
+// Navigation
+prevBtn.onclick = ()=>{ if(currentPage>1) renderPage(--currentPage); };
+nextBtn.onclick = ()=>{ if(currentPage<pdfDoc.numPages) renderPage(++currentPage); };
+
+// Download redacted PDF
+downloadBtn.onclick = async()=>{
+  const pdfLibDoc = await PDFLib.PDFDocument.load(pdfBytes);
+  for(let pageNum in redactions){
+    const page = pdfLibDoc.getPage(pageNum-1);
+    redactions[pageNum].forEach(r=>{
+      const rect = r.element.getBoundingClientRect();
+      const canvasRect = canvas.getBoundingClientRect();
+      const x = (rect.left - canvasRect.left)/scale;
+      const y = (rect.top - canvasRect.top)/scale;
+      const w = rect.width/scale;
+      const h = rect.height/scale;
+      page.drawRectangle({x:x, y:page.getHeight()-y-h, width:w, height:h, color:PDFLib.rgb(0,0,0)});
+    });
+  }
+  const bytes = await pdfLibDoc.save();
+  const blob = new Blob([bytes],{type:'application/pdf'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='redacted-'+fileInput.files[0].name; a.click();
+  toast.style.display='block';
+  setTimeout(()=>{toast.style.display='none';},2500);
+};
+</script>
 </body>
 </html>
