@@ -3,27 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🛡️ PDF Redact Tool | Multi-Page & Multiple Boxes</title>
-<meta name="description" content="Redact sensitive text or areas in multi-page PDFs online. Free, mobile-friendly, multiple redact boxes per page. EasyUseHub PDF Tools.">
+<title>🛡️ PDF Redact Tool</title>
+<meta name="description" content="Redact sensitive areas in multi-page PDFs online. Full control, background mask, multi-box, mobile-ready. EasyUseHub PDF Tools.">
 <style>
 body { font-family: Arial,sans-serif; margin:0; padding:0; background:#f9f9f9; color:#333; }
-header { text-align:center; padding:20px; background:#9333ea; color:#fff; }
-header h1 { margin:0; }
+header { display:flex; justify-content:space-between; align-items:center; padding:15px; background:#9333ea; color:#fff; }
+header h1 { margin:0; font-size:1.5rem; }
+button { padding:10px 20px; border:none; border-radius:8px; background:#fff; color:#9333ea; cursor:pointer; margin-left:5px; }
 .container { max-width:900px; margin:20px auto; padding:0 15px; }
 #upload-box { border:3px dashed #9333ea; padding:20px; text-align:center; cursor:pointer; border-radius:10px; background:#fff; }
 #page-thumbnails { display:flex; flex-wrap:wrap; gap:10px; margin:20px 0; justify-content:center; }
 .thumbnail { border:1px solid #ccc; width:80px; height:100px; overflow:hidden; cursor:pointer; }
 #pdf-viewer { position:relative; width:100%; height:70vh; border:1px solid #ccc; overflow:auto; margin-bottom:20px; }
 #pdf-viewer canvas { display:block; width:100%; height:auto; }
-.crop-rect { position:absolute; border:2px dashed #9333ea; background:rgba(147,51,234,0.2); touch-action:none; }
-button { padding:10px 20px; margin:5px; border:none; border-radius:8px; background:#9333ea; color:#fff; cursor:pointer; }
+.overlay { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); pointer-events:none; }
+.crop-rect { position:absolute; border:2px dashed #ffcc00; background:rgba(255,255,0,0.2); touch-action:none; }
 #toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#9333ea; color:#fff; padding:10px 20px; border-radius:8px; display:none; z-index:9999; }
+.controls { margin-bottom:10px; }
 </style>
 </head>
 <body>
 
 <header>
 <h1>🛡️ PDF Redact Tool</h1>
+<div>
+<button onclick="window.location.href='index.html'">🏠 Home</button>
+<button onclick="window.location.href='all-tools.html'">📚 All PDF Tools</button>
+</div>
 </header>
 
 <div class="container">
@@ -34,10 +40,12 @@ button { padding:10px 20px; margin:5px; border:none; border-radius:8px; backgrou
 
 <div id="pdf-viewer"></div>
 
+<div class="controls">
 <button id="prev-page">⬅ Prev</button>
 <button id="next-page">Next ➡</button>
 <button id="add-box">➕ Add Redact Box</button>
 <button id="download-pdf">📥 Download Redacted PDF</button>
+</div>
 
 <div id="toast">PDF downloaded!</div>
 </div>
@@ -58,7 +66,7 @@ const toast = document.getElementById('toast');
 
 let pdfDoc = null, pdfBytes = null, currentPage = 1, scale = 1;
 let canvas = null;
-let redactions = {}; // { pageNum: [ {element: div, coords: {x,y,w,h}} ] }
+let redactions = {}; // { pageNum: [ {element: div} ] }
 
 uploadBox.onclick = () => fileInput.click();
 
@@ -98,6 +106,11 @@ async function renderPage(pageNum){
   await page.render({canvasContext:canvas.getContext('2d'), viewport:scaledViewport}).promise;
   pdfViewer.appendChild(canvas);
 
+  // Add overlay
+  let overlay = document.createElement('div');
+  overlay.className='overlay';
+  pdfViewer.appendChild(overlay);
+
   // Remove old boxes
   pdfViewer.querySelectorAll('.crop-rect').forEach(e=>e.remove());
 
@@ -109,6 +122,7 @@ async function renderPage(pageNum){
   }
 }
 
+// Add redact box
 addBoxBtn.onclick = ()=>{
   const newBox = document.createElement('div');
   newBox.className='crop-rect';
