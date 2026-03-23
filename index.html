@@ -3,41 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🛡️ PDF Redact Tool</title>
-<meta name="description" content="Redact sensitive areas in multi-page PDFs online. Full control, background mask, multi-box, mobile-ready. EasyUseHub PDF Tools.">
+<title>🛡️ PDF Redact Tool | Professional</title>
+<meta name="description" content="Redact sensitive areas in multi-page PDFs online with professional Rotated-PDF style. Full control, multiple boxes, original colors preserved.">
 <style>
 body { font-family: Arial,sans-serif; margin:0; padding:0; background:#f9f9f9; color:#333; }
-header { display:flex; justify-content:space-between; align-items:center; padding:15px; background:#9333ea; color:#fff; }
-header h1 { margin:0; font-size:1.5rem; }
-button { padding:10px 20px; border:none; border-radius:8px; background:#fff; color:#9333ea; cursor:pointer; margin-left:5px; }
+header { padding:15px; background:#9333ea; color:#fff; text-align:center; }
+header h1 { margin:0; font-size:1.8rem; }
+header p { margin:5px 0 0; font-size:0.95rem; }
+.ad-placeholder { width:100%; height:60px; background:#ccc; text-align:center; line-height:60px; margin:10px 0; border-radius:8px; }
 .container { max-width:900px; margin:20px auto; padding:0 15px; }
-#upload-box { border:3px dashed #9333ea; padding:20px; text-align:center; cursor:pointer; border-radius:10px; background:#fff; }
-#page-thumbnails { display:flex; flex-wrap:wrap; gap:10px; margin:20px 0; justify-content:center; }
+#upload-box { border:3px dashed #9333ea; padding:20px; text-align:center; cursor:pointer; border-radius:10px; background:#fff; margin-bottom:15px; }
+#page-thumbnails { display:flex; flex-wrap:wrap; gap:10px; margin:15px 0; justify-content:center; }
 .thumbnail { border:1px solid #ccc; width:80px; height:100px; overflow:hidden; cursor:pointer; }
-#pdf-viewer { position:relative; width:100%; height:70vh; border:1px solid #ccc; overflow:auto; margin-bottom:20px; }
+#pdf-viewer { position:relative; width:100%; height:70vh; border:1px solid #ccc; overflow:auto; margin-bottom:20px; background:#000; }
 #pdf-viewer canvas { display:block; width:100%; height:auto; }
 .overlay { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); pointer-events:none; }
 .crop-rect { position:absolute; border:2px dashed #ffcc00; background:rgba(255,255,0,0.2); touch-action:none; }
+button { padding:10px 20px; border:none; border-radius:8px; background:#9333ea; color:#fff; cursor:pointer; margin:5px; }
+.controls { display:flex; flex-wrap:wrap; justify-content:center; margin-bottom:10px; }
 #toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#9333ea; color:#fff; padding:10px 20px; border-radius:8px; display:none; z-index:9999; }
-.controls { margin-bottom:10px; }
 </style>
 </head>
 <body>
 
 <header>
 <h1>🛡️ PDF Redact Tool</h1>
-<div>
-<button onclick="window.location.href='index.html'">🏠 Home</button>
-<button onclick="window.location.href='all-tools.html'">📚 All PDF Tools</button>
-</div>
+<p>Upload your PDF, select sensitive areas, and download securely. Full control over multiple redaction boxes.</p>
 </header>
+
+<div class="ad-placeholder">Top Ad Placeholder</div>
 
 <div class="container">
 <div id="upload-box">📁 Upload PDF</div>
 <input type="file" id="fileInput" accept="application/pdf" hidden>
 
-<div id="page-thumbnails"></div>
+<div class="ad-placeholder">Middle Ad Placeholder</div>
 
+<div class="controls">
+<button onclick="window.location.href='index.html'">🏠 Home</button>
+<button onclick="window.location.href='all-tools.html'">📚 All PDF Tools</button>
+</div>
+
+<div id="page-thumbnails"></div>
 <div id="pdf-viewer"></div>
 
 <div class="controls">
@@ -104,15 +111,13 @@ async function renderPage(pageNum){
   canvas.width = scaledViewport.width;
   canvas.height = scaledViewport.height;
   await page.render({canvasContext:canvas.getContext('2d'), viewport:scaledViewport}).promise;
+  pdfViewer.innerHTML='';
   pdfViewer.appendChild(canvas);
 
-  // Add overlay
+  // Overlay for masking
   let overlay = document.createElement('div');
   overlay.className='overlay';
   pdfViewer.appendChild(overlay);
-
-  // Remove old boxes
-  pdfViewer.querySelectorAll('.crop-rect').forEach(e=>e.remove());
 
   // Render existing boxes
   if(redactions[pageNum]){
