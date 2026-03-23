@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🛡️ PDF Redact Tool | Professional</title>
-<meta name="description" content="Redact sensitive areas in multi-page PDFs online with professional Rotated-PDF style. Full control, multiple boxes, original colors preserved.">
+<title>🛡️ PDF Redact Tool</title>
+<meta name="description" content="Redact sensitive areas in multi-page PDFs online. Original PDF colors preserved, multi-box, auto color redaction.">
 <style>
 body { font-family: Arial,sans-serif; margin:0; padding:0; background:#f9f9f9; color:#333; }
 header { padding:15px; background:#9333ea; color:#fff; text-align:center; }
@@ -15,9 +15,8 @@ header p { margin:5px 0 0; font-size:0.95rem; }
 #upload-box { border:3px dashed #9333ea; padding:20px; text-align:center; cursor:pointer; border-radius:10px; background:#fff; margin-bottom:15px; }
 #page-thumbnails { display:flex; flex-wrap:wrap; gap:10px; margin:15px 0; justify-content:center; }
 .thumbnail { border:1px solid #ccc; width:80px; height:100px; overflow:hidden; cursor:pointer; }
-#pdf-viewer { position:relative; width:100%; height:70vh; border:1px solid #ccc; overflow:auto; margin-bottom:20px; background:#000; }
+#pdf-viewer { position:relative; width:100%; height:70vh; border:1px solid #ccc; overflow:auto; margin-bottom:20px; background:#fff; }
 #pdf-viewer canvas { display:block; width:100%; height:auto; }
-.overlay { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); pointer-events:none; }
 .crop-rect { position:absolute; border:2px dashed #ffcc00; background:rgba(255,255,0,0.2); touch-action:none; }
 button { padding:10px 20px; border:none; border-radius:8px; background:#9333ea; color:#fff; cursor:pointer; margin:5px; }
 .controls { display:flex; flex-wrap:wrap; justify-content:center; margin-bottom:10px; }
@@ -28,7 +27,7 @@ button { padding:10px 20px; border:none; border-radius:8px; background:#9333ea; 
 
 <header>
 <h1>🛡️ PDF Redact Tool</h1>
-<p>Upload your PDF, select sensitive areas, and download securely. Full control over multiple redaction boxes.</p>
+<p>Upload your PDF, select sensitive areas, and download securely. Auto color redaction preserves original PDF colors.</p>
 </header>
 
 <div class="ad-placeholder">Top Ad Placeholder</div>
@@ -40,8 +39,8 @@ button { padding:10px 20px; border:none; border-radius:8px; background:#9333ea; 
 <div class="ad-placeholder">Middle Ad Placeholder</div>
 
 <div class="controls">
-<button onclick="window.location.href='index.html'">🏠 Home</button>
-<button onclick="window.location.href='all-tools.html'">📚 All PDF Tools</button>
+<button onclick="window.location.href='https://easyusehub.blogspot.com/?m=1'">🏠 Home</button>
+<button onclick="window.location.href='https://easyusehub.blogspot.com/2026/01/free-pdf-tools-online-merge-compress.html?m=1'">📚 All PDF Tools</button>
 </div>
 
 <div id="page-thumbnails"></div>
@@ -114,11 +113,6 @@ async function renderPage(pageNum){
   pdfViewer.innerHTML='';
   pdfViewer.appendChild(canvas);
 
-  // Overlay for masking
-  let overlay = document.createElement('div');
-  overlay.className='overlay';
-  pdfViewer.appendChild(overlay);
-
   // Render existing boxes
   if(redactions[pageNum]){
     redactions[pageNum].forEach(r=>{
@@ -160,7 +154,7 @@ addBoxBtn.onclick = ()=>{
 prevBtn.onclick = ()=>{ if(currentPage>1) renderPage(--currentPage); };
 nextBtn.onclick = ()=>{ if(currentPage<pdfDoc.numPages) renderPage(++currentPage); };
 
-// Download redacted PDF
+// Download redacted PDF with auto page color
 downloadBtn.onclick = async()=>{
   const pdfLibDoc = await PDFLib.PDFDocument.load(pdfBytes);
   for(let pageNum in redactions){
@@ -172,7 +166,11 @@ downloadBtn.onclick = async()=>{
       const y = (rect.top - canvasRect.top)/scale;
       const w = rect.width/scale;
       const h = rect.height/scale;
-      page.drawRectangle({x:x, y:page.getHeight()-y-h, width:w, height:h, color:PDFLib.rgb(0,0,0)});
+      // Sample pixel color under rectangle (approximate average)
+      const ctx = canvas.getContext('2d');
+      const imgData = ctx.getImageData(x, y, 1, 1).data;
+      const rC = imgData[0]/255, gC = imgData[1]/255, bC = imgData[2]/255;
+      page.drawRectangle({x:x, y:page.getHeight()-y-h, width:w, height:h, color:PDFLib.rgb(rC,gC,bC)});
     });
   }
   const bytes = await pdfLibDoc.save();
