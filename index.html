@@ -3,62 +3,115 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🛡️ PDF Redact Tool</title>
-<meta name="description" content="Redact sensitive areas in multi-page PDFs online. Original PDF colors preserved, multi-box, auto color redaction.">
+<title>🛡️ PDF Redact Tool | EasyUseHub</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+
 <style>
-body { font-family: Arial,sans-serif; margin:0; padding:0; background:#f9f9f9; color:#333; }
-header { padding:15px; background:#9333ea; color:#fff; text-align:center; }
-header h1 { margin:0; font-size:1.8rem; }
-header p { margin:5px 0 0; font-size:0.95rem; }
-.ad-placeholder { width:100%; height:60px; background:#ccc; text-align:center; line-height:60px; margin:10px 0; border-radius:8px; }
-.container { max-width:900px; margin:20px auto; padding:0 15px; }
-#upload-box { border:3px dashed #9333ea; padding:20px; text-align:center; cursor:pointer; border-radius:10px; background:#fff; margin-bottom:15px; }
-#page-thumbnails { display:flex; flex-wrap:wrap; gap:10px; margin:15px 0; justify-content:center; }
-.thumbnail { border:1px solid #ccc; width:80px; height:100px; overflow:hidden; cursor:pointer; }
-#pdf-viewer { position:relative; width:100%; height:70vh; border:1px solid #ccc; overflow:auto; margin-bottom:20px; background:#fff; }
-#pdf-viewer canvas { display:block; width:100%; height:auto; }
-.crop-rect { position:absolute; border:2px dashed #ffcc00; background:rgba(255,255,0,0.2); touch-action:none; }
-button { padding:10px 20px; border:none; border-radius:8px; background:#9333ea; color:#fff; cursor:pointer; margin:5px; }
-.controls { display:flex; flex-wrap:wrap; justify-content:center; margin-bottom:10px; }
-#toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#9333ea; color:#fff; padding:10px 20px; border-radius:8px; display:none; z-index:9999; }
+:root { --primary: #9333ea; --bg: #f0f2f5; }
+body, html{ margin:0; padding:0; font-family:'Segoe UI',sans-serif; background:var(--bg); display:flex; flex-direction:column; align-items:center; position: relative; overflow-x: hidden;}
+
+/* --- Premium Ad Bridges --- */
+.custom-ad-bridge {
+    background: linear-gradient(135deg, #1e3a8a, #2563eb); color: white; padding: 25px;
+    margin: 15px 0; border-radius: 12px; cursor: pointer; width: 90%; max-width: 600px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.ad-title { font-size: 18px; font-weight: bold; display: block; margin-bottom: 5px; }
+.ad-desc { font-size: 13px; display: block; opacity: 0.9; margin-bottom: 10px; }
+.ad-btn { background: #fbbf24; color: #000; padding: 8px 18px; border-radius: 5px; font-weight: bold; text-transform: uppercase; display: inline-block; font-size: 12px; }
+
+/* --- Push Notification --- */
+#push-notification {
+    position: fixed; bottom: -150px; right: 20px; width: 300px; background: #fff; border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; align-items: center; padding: 12px;
+    z-index: 10000; transition: bottom 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55); cursor: pointer; border-left: 5px solid #2563eb; color: #333;
+}
+#push-notification.active { bottom: 20px; }
+#push-notification img { width: 45px; height: 45px; border-radius: 8px; margin-right: 12px; }
+.push-text b { font-size: 14px; color: #222; display: block; }
+.push-text p { font-size: 12px; color: #666; margin: 3px 0 0 0; }
+
+h1{text-align:center; margin:20px; color: #333;}
+#instructions{ width:90%; max-width:600px; margin:10px auto; text-align:center; font-size:14px; color:#555; }
+
+/* --- Tool Box --- */
+#upload-box { border:3px dashed var(--primary); padding:30px 20px; text-align:center; cursor:pointer; border-radius:12px; background:#fff; width:85%; max-width:400px; margin-bottom:15px; transition: 0.3s; }
+#upload-box:hover { background: #f5e6fa; transform: scale(1.02); }
+
+#page-thumbnails { display:flex; flex-wrap:wrap; gap:10px; margin:15px 0; justify-content:center; padding: 0 10px; }
+.thumbnail { border:2px solid #ddd; width:80px; height:110px; overflow:hidden; cursor:pointer; border-radius: 5px; background: #fff; transition: 0.2s; }
+.thumbnail:hover { border-color: var(--primary); transform: translateY(-3px); }
+
+#pdf-viewer { position:relative; width:95%; max-width:800px; height:70vh; border:2px solid #ccc; overflow:auto; margin-bottom:20px; background:#555; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
+#pdf-viewer canvas { display:block; margin: 0 auto; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
+
+.redact-rect { position:absolute; border:2px dashed #ff0000; background:rgba(0,0,0,0.8); touch-action:none; z-index: 10; cursor: move; }
+.delete-box { position: absolute; top: -10px; right: -10px; background: red; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; text-align: center; line-height: 20px; cursor: pointer; border: 1px solid white; }
+
+.action-btn { padding:12px 24px; border:none; border-radius:8px; background:var(--primary); color:#fff; cursor:pointer; margin:5px; font-weight: bold; transition: 0.3s; }
+.action-btn:hover { opacity: 0.9; transform: scale(1.03); }
+.home-btn { display:inline-block; margin:10px; padding:12px 26px; background:#444; color:#fff; text-decoration:none; font-weight:bold; border-radius: 8px; font-size: 14px; }
+
+#toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--primary); color:#fff; padding:12px 25px; border-radius:8px; display:none; z-index:99999; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
 </style>
 </head>
 <body>
 
-<header>
+<div id="push-notification" onclick="window.open('https://easyusehub.blogspot.com', '_blank')">
+    <img src="https://cdn-icons-png.flaticon.com/512/5968/5968313.png" alt="icon">
+    <div class="push-text">
+        <b>🚀 46+ Premium Free Tools Ready!</b>
+        <p>PDF Tools, Calculators & more - 100% Free.</p>
+    </div>
+</div>
+
 <h1>🛡️ PDF Redact Tool</h1>
-<p>Upload your PDF, select sensitive areas, and download securely. Auto color redaction preserves original PDF colors.</p>
-</header>
 
-<div class="ad-placeholder">Top Ad Placeholder</div>
+<div class="custom-ad-bridge" onclick="window.open('https://easyusehub.blogspot.com', '_blank')">
+    <span class="ad-title">🚀 Try 46+ Premium Free Web Tools!</span>
+    <span class="ad-desc">All PDF TOOLS, Calculators, BMI Tracker & more - 100% Free</span>
+    <div class="ad-btn">Open EasyUseHub</div>
+</div>
 
-<div class="container">
-<div id="upload-box">📁 Upload PDF</div>
+<div id="instructions">
+  Instructions: Upload PDF, select a page, add redact boxes over sensitive info, then download. (Max 20MB)
+</div>
+
+<div id="upload-box">📁 Click to Upload PDF (Max 20MB)</div>
 <input type="file" id="fileInput" accept="application/pdf" hidden>
 
-<div class="ad-placeholder">Middle Ad Placeholder</div>
-
-<div class="controls">
-<button onclick="window.location.href='https://easyusehub.blogspot.com/?m=1'">🏠 Home</button>
-<button onclick="window.location.href='https://easyusehub.blogspot.com/p/free-pdf-tools-online.html'">📚 All PDF Tools</button>
-</div>
-
 <div id="page-thumbnails"></div>
-<div id="pdf-viewer"></div>
 
-<div class="controls">
-<button id="prev-page">⬅ Prev</button>
-<button id="next-page">Next ➡</button>
-<button id="add-box">➕ Add Redact Box</button>
-<button id="download-pdf">📥 Download Redacted PDF</button>
+<div id="editor-container" style="display:none; width: 100%; text-align: center;">
+    <div id="pdf-viewer"></div>
+    <div class="controls">
+        <button class="action-btn" id="prev-page" style="background:#444;">⬅ Prev</button>
+        <button class="action-btn" id="next-page" style="background:#444;">Next ➡</button>
+        <button class="action-btn" id="add-box" style="background:#f59e0b;">➕ Add Redact Box</button>
+        <button class="action-btn" id="download-pdf">📥 Download Redacted PDF</button>
+    </div>
 </div>
 
-<div id="toast">PDF downloaded!</div>
+<div class="custom-ad-bridge" style="background: linear-gradient(135deg, #059669, #10b981);" onclick="window.open('https://easyusehub.blogspot.com/p/image-compressor.html', '_blank')">
+    <span class="ad-title">⚡ High-Speed Image Compressor</span>
+    <span class="ad-desc">Protect your privacy and optimize files at EasyUseHub</span>
+    <div class="ad-btn" style="background: #fff; color: #059669;">Try Now</div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+<div class="custom-ad-bridge" style="background: linear-gradient(135deg, #f59e0b, #d97706);" onclick="window.open('https://easyusehub.blogspot.com/p/ultimate-calculators-hub.html', '_blank')">
+    <span class="ad-title">🔢 Smart Online Calculators</span>
+    <span class="ad-desc">All Premium Calculators ready for you - 100% Free</span>
+    <div class="ad-btn" style="background: #000; color: #fff;">Open Calculators</div>
+</div>
+
+<div style="margin-bottom: 30px;">
+    <a href="https://easyusehub.blogspot.com/p/free-pdf-tools-online.html" class="home-btn">📂 All PDF Tools</a>
+    <a href="https://easyusehub.blogspot.com/" class="home-btn">🏠 Home</a>
+</div>
+
+<div id="toast">✅ Redacted PDF Downloaded!</div>
+
 <script>
 const uploadBox = document.getElementById('upload-box');
 const fileInput = document.getElementById('fileInput');
@@ -72,23 +125,34 @@ const toast = document.getElementById('toast');
 
 let pdfDoc = null, pdfBytes = null, currentPage = 1, scale = 1;
 let canvas = null;
-let redactions = {}; // { pageNum: [ {element: div} ] }
+let redactions = {}; // { pageNum: [ {x, y, w, h} ] }
 
 uploadBox.onclick = () => fileInput.click();
 
 fileInput.addEventListener('change', async e => {
   const file = e.target.files[0];
   if(!file) return;
+
+  if(file.size > 20 * 1024 * 1024) {
+      alert("❌ File exceeds 20MB limit.");
+      fileInput.value = "";
+      return;
+  }
+
   pdfBytes = await file.arrayBuffer();
   pdfDoc = await pdfjsLib.getDocument({data: pdfBytes}).promise;
-  pageThumbnails.innerHTML = '';
-  for(let i=1;i<=pdfDoc.numPages;i++){
+  pageThumbnails.innerHTML = '<p style="width:100%; color:#666; font-weight:bold;">Select a page to redact:</p>';
+  uploadBox.style.display = "none";
+  document.getElementById('editor-container').style.display = "block";
+
+  for(let i=1; i<=pdfDoc.numPages; i++){
     const page = await pdfDoc.getPage(i);
     const viewport = page.getViewport({scale:0.2});
     const thumbCanvas = document.createElement('canvas');
     thumbCanvas.width = viewport.width;
     thumbCanvas.height = viewport.height;
     await page.render({canvasContext: thumbCanvas.getContext('2d'), viewport}).promise;
+    
     const thumbDiv = document.createElement('div');
     thumbDiv.className = 'thumbnail';
     thumbDiv.appendChild(thumbCanvas);
@@ -96,90 +160,133 @@ fileInput.addEventListener('change', async e => {
     pageThumbnails.appendChild(thumbDiv);
   }
   renderPage(1);
+  setTimeout(() => { document.getElementById('push-notification').classList.add('active'); }, 2000);
 });
 
 async function renderPage(pageNum){
   const page = await pdfDoc.getPage(pageNum);
-  const viewport = page.getViewport({scale:1});
-  const containerWidth = pdfViewer.clientWidth;
-  scale = containerWidth / viewport.width;
-  const scaledViewport = page.getViewport({scale:scale});
+  const baseViewport = page.getViewport({scale:1});
+  const containerWidth = Math.min(pdfViewer.clientWidth - 20, 750);
+  scale = containerWidth / baseViewport.width;
+  const viewport = page.getViewport({scale:scale});
 
-  if(canvas) canvas.remove();
+  pdfViewer.innerHTML = '';
   canvas = document.createElement('canvas');
-  canvas.width = scaledViewport.width;
-  canvas.height = scaledViewport.height;
-  await page.render({canvasContext:canvas.getContext('2d'), viewport:scaledViewport}).promise;
-  pdfViewer.innerHTML='';
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  await page.render({canvasContext:canvas.getContext('2d'), viewport}).promise;
   pdfViewer.appendChild(canvas);
 
-  // Render existing boxes
+  // Restore saved redaction boxes for this page
   if(redactions[pageNum]){
-    redactions[pageNum].forEach(r=>{
-      pdfViewer.appendChild(r.element);
+    redactions[pageNum].forEach((data, index) => {
+        createBoxUI(data.x * scale + canvas.offsetLeft, data.y * scale + canvas.offsetTop, data.w * scale, data.h * scale, index);
     });
   }
 }
 
-// Add redact box
-addBoxBtn.onclick = ()=>{
-  const newBox = document.createElement('div');
-  newBox.className='crop-rect';
-  newBox.style.left='50px';
-  newBox.style.top='50px';
-  newBox.style.width='150px';
-  newBox.style.height='80px';
-  pdfViewer.appendChild(newBox);
+function createBoxUI(left, top, width, height, index) {
+    const box = document.createElement('div');
+    box.className = 'redact-rect';
+    box.style.left = left + 'px';
+    box.style.top = top + 'px';
+    box.style.width = width + 'px';
+    box.style.height = height + 'px';
+    box.dataset.index = index;
 
-  interact(newBox).draggable({ listeners: { move(event){
-    const target = event.target;
-    const x = (parseFloat(target.getAttribute('data-x'))||0)+event.dx;
-    const y = (parseFloat(target.getAttribute('data-y'))||0)+event.dy;
-    target.style.left=x+'px'; target.style.top=y+'px';
-    target.setAttribute('data-x',x); target.setAttribute('data-y',y);
-  }}})
-  .resizable({ edges:{left:true,right:true,top:true,bottom:true},
-    listeners:{move(event){
-      let {width,height}=event.rect;
-      event.target.style.width=width+'px';
-      event.target.style.height=height+'px';
-    }}, modifiers:[interact.modifiers.restrictEdges({outer:pdfViewer})], inertia:true
-  });
+    const del = document.createElement('div');
+    del.className = 'delete-box';
+    del.innerHTML = '×';
+    del.onclick = (e) => {
+        e.stopPropagation();
+        redactions[currentPage].splice(box.dataset.index, 1);
+        renderPage(currentPage);
+    };
+    box.appendChild(del);
+    pdfViewer.appendChild(box);
 
-  if(!redactions[currentPage]) redactions[currentPage]=[];
-  redactions[currentPage].push({element:newBox});
+    interact(box).draggable({
+        listeners: { move(event) {
+            const target = event.target;
+            const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+            const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+            target.style.transform = `translate(${x}px, ${y}px)`;
+            target.setAttribute('data-x', x);
+            target.setAttribute('data-y', y);
+            saveBoxData(target);
+        } },
+        modifiers: [ interact.modifiers.restrictRect({ restriction: canvas }) ]
+    }).resizable({
+        edges: { left: true, right: true, top: true, bottom: true },
+        listeners: { move(event) {
+            let { x, y } = event.target.dataset;
+            x = parseFloat(x) || 0; y = parseFloat(y) || 0;
+            Object.assign(event.target.style, {
+                width: `${event.rect.width}px`, height: `${event.rect.height}px`,
+                transform: `translate(${x + event.deltaRect.left}px, ${y + event.deltaRect.top}px)`
+            });
+            Object.assign(event.target.dataset, { x: x + event.deltaRect.left, y: y + event.deltaRect.top });
+            saveBoxData(event.target);
+        } },
+        modifiers: [ interact.modifiers.restrictEdges({ outer: canvas }) ]
+    });
+}
+
+function saveBoxData(el) {
+    const rect = el.getBoundingClientRect();
+    const cRect = canvas.getBoundingClientRect();
+    const idx = el.dataset.index;
+    if(!redactions[currentPage]) redactions[currentPage] = [];
+    redactions[currentPage][idx] = {
+        x: (rect.left - cRect.left) / scale,
+        y: (rect.top - cRect.top) / scale,
+        w: rect.width / scale,
+        h: rect.height / scale
+    };
+}
+
+addBoxBtn.onclick = () => {
+    if(!redactions[currentPage]) redactions[currentPage] = [];
+    const newIdx = redactions[currentPage].length;
+    const newData = { x: 50, y: 50, w: 150, h: 50 };
+    redactions[currentPage].push(newData);
+    createBoxUI(50 * scale + canvas.offsetLeft, 50 * scale + canvas.offsetTop, 150 * scale, 50 * scale, newIdx);
 };
 
-// Navigation
-prevBtn.onclick = ()=>{ if(currentPage>1) renderPage(--currentPage); };
-nextBtn.onclick = ()=>{ if(currentPage<pdfDoc.numPages) renderPage(++currentPage); };
+prevBtn.onclick = () => { if(currentPage > 1) { currentPage--; renderPage(currentPage); } };
+nextBtn.onclick = () => { if(currentPage < pdfDoc.numPages) { currentPage++; renderPage(currentPage); } };
 
-// Download redacted PDF with auto page color
-downloadBtn.onclick = async()=>{
-  const pdfLibDoc = await PDFLib.PDFDocument.load(pdfBytes);
-  for(let pageNum in redactions){
-    const page = pdfLibDoc.getPage(pageNum-1);
-    redactions[pageNum].forEach(r=>{
-      const rect = r.element.getBoundingClientRect();
-      const canvasRect = canvas.getBoundingClientRect();
-      const x = (rect.left - canvasRect.left)/scale;
-      const y = (rect.top - canvasRect.top)/scale;
-      const w = rect.width/scale;
-      const h = rect.height/scale;
-      // Sample pixel color under rectangle (approximate average)
-      const ctx = canvas.getContext('2d');
-      const imgData = ctx.getImageData(x, y, 1, 1).data;
-      const rC = imgData[0]/255, gC = imgData[1]/255, bC = imgData[2]/255;
-      page.drawRectangle({x:x, y:page.getHeight()-y-h, width:w, height:h, color:PDFLib.rgb(rC,gC,bC)});
-    });
-  }
-  const bytes = await pdfLibDoc.save();
-  const blob = new Blob([bytes],{type:'application/pdf'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href=url; a.download='redacted-'+fileInput.files[0].name; a.click();
-  toast.style.display='block';
-  setTimeout(()=>{toast.style.display='none';},2500);
+downloadBtn.onclick = async () => {
+    downloadBtn.disabled = true;
+    downloadBtn.innerText = "Applying Redactions...";
+    try {
+        const pdfLibDoc = await PDFLib.PDFDocument.load(pdfBytes);
+        for(let pNum in redactions) {
+            const page = pdfLibDoc.getPage(parseInt(pNum) - 1);
+            redactions[pNum].forEach(box => {
+                page.drawRectangle({
+                    x: box.x,
+                    y: page.getHeight() - box.y - box.h,
+                    width: box.w,
+                    height: box.h,
+                    color: PDFLib.rgb(0, 0, 0) // Pure Black for security
+                });
+            });
+        }
+        const bytes = await pdfLibDoc.save();
+        const blob = new Blob([bytes], {type:'application/pdf'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `Redacted_EasyUseHub_${Date.now()}.pdf`;
+        a.click();
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 3000);
+    } catch(e) {
+        alert("Error saving PDF.");
+    } finally {
+        downloadBtn.disabled = false;
+        downloadBtn.innerText = "📥 Download Redacted PDF";
+    }
 };
 </script>
 </body>
