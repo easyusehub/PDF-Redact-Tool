@@ -9,59 +9,66 @@
 <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 
 <style>
-:root { --primary: #9333ea; --bg: #f0f2f5; }
-body, html{ margin:0; padding:0; font-family:'Segoe UI',sans-serif; background:var(--bg); display:flex; flex-direction:column; align-items:center; position: relative; overflow-x: hidden;}
+:root { --primary: #9333ea; --bg: #f5f7fa; }
+body, html{ margin:0; padding:0; font-family:Arial, sans-serif; background:var(--bg); text-align:center; position: relative; overflow-x: hidden;}
 
-/* --- Premium Ad Bridges --- */
+/* --- Compact Ad Bridges (Smaller Style) --- */
 .custom-ad-bridge {
-    background: linear-gradient(135deg, #1e3a8a, #2563eb); color: white; padding: 25px;
-    margin: 15px 0; border-radius: 12px; cursor: pointer; width: 90%; max-width: 600px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    background: linear-gradient(135deg, #1e3a8a, #2563eb);
+    color: white; padding: 15px; margin: 15px auto; border-radius: 10px; cursor: pointer;
+    width: 90%; max-width: 600px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: 0.2s;
 }
-.ad-title { font-size: 18px; font-weight: bold; display: block; margin-bottom: 5px; }
-.ad-desc { font-size: 13px; display: block; opacity: 0.9; margin-bottom: 10px; }
-.ad-btn { background: #fbbf24; color: #000; padding: 8px 18px; border-radius: 5px; font-weight: bold; text-transform: uppercase; display: inline-block; font-size: 12px; }
+.custom-ad-bridge:hover { transform: scale(1.01); }
+.ad-title { font-size: 16px; font-weight: bold; margin-bottom: 5px; display: block; }
+.custom-ad-bridge span.ad-desc { font-size: 13px; margin: 5px 0; opacity: 0.9; display: block; line-height: 1.4; }
+.ad-btn { background: #fbbf24; color: #000; padding: 6px 15px; border-radius: 4px; font-weight: bold; text-transform: uppercase; display: inline-block; font-size: 11px; margin-top: 5px; }
 
-/* --- Push Notification --- */
+/* --- Compact Push Notification --- */
 #push-notification {
-    position: fixed; bottom: -150px; right: 20px; width: 300px; background: #fff; border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; align-items: center; padding: 12px;
-    z-index: 10000; transition: bottom 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55); cursor: pointer; border-left: 5px solid #2563eb; color: #333;
+    position: fixed; bottom: -180px; right: 20px; width: 280px; background: #fff; border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: flex; align-items: center; padding: 10px;
+    z-index: 10000; transition: bottom 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55); cursor: pointer; border-left: 5px solid #2563eb; text-align: left;
 }
 #push-notification.active { bottom: 20px; }
 #push-notification img { width: 45px; height: 45px; border-radius: 8px; margin-right: 12px; }
-.push-text b { font-size: 14px; color: #222; display: block; }
-.push-text p { font-size: 12px; color: #666; margin: 3px 0 0 0; }
+.push-text b { font-size: 13px; color: #222; display: block; }
+.push-text p { font-size: 11px; color: #666; margin: 2px 0 0 0; }
+.close-push { 
+    position: absolute; top: -10px; left: -10px; width: 22px; height: 22px;
+    background: #ef4444; color: #fff; border-radius: 50%; text-align: center;
+    line-height: 20px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
 
-h1{text-align:center; margin:20px; color: #333;}
-#instructions{ width:90%; max-width:600px; margin:10px auto; text-align:center; font-size:14px; color:#555; }
+h1{text-align:center; margin:20px; color: #333; font-size: 24px;}
+#instructions{ width:90%; max-width:600px; margin:10px auto; text-align:center; font-size:13px; color:#666; }
 
-/* --- Tool Box --- */
-#upload-box { border:3px dashed var(--primary); padding:30px 20px; text-align:center; cursor:pointer; border-radius:12px; background:#fff; width:85%; max-width:400px; margin-bottom:15px; transition: 0.3s; }
-#upload-box:hover { background: #f5e6fa; transform: scale(1.02); }
+/* --- Tool Components --- */
+#upload-box { border:2px dashed var(--primary); padding:30px 20px; text-align:center; cursor:pointer; border-radius:12px; background:#fff; width:85%; max-width:450px; margin:20px auto; transition: 0.3s; }
+#upload-box:hover { background: #f5e6fa; }
 
 #page-thumbnails { display:flex; flex-wrap:wrap; gap:10px; margin:15px 0; justify-content:center; padding: 0 10px; }
 .thumbnail { border:2px solid #ddd; width:80px; height:110px; overflow:hidden; cursor:pointer; border-radius: 5px; background: #fff; transition: 0.2s; }
 .thumbnail:hover { border-color: var(--primary); transform: translateY(-3px); }
 
-#pdf-viewer { position:relative; width:95%; max-width:800px; height:70vh; border:2px solid #ccc; overflow:auto; margin-bottom:20px; background:#555; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
-#pdf-viewer canvas { display:block; margin: 0 auto; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
+#pdf-viewer { position:relative; width:95%; max-width:800px; height:70vh; border:1px solid #ccc; overflow:auto; margin:0 auto 20px auto; background:#555; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
+#pdf-viewer canvas { display:block; margin: 0 auto; }
 
-.redact-rect { position:absolute; border:2px dashed #ff0000; background:rgba(0,0,0,0.8); touch-action:none; z-index: 10; cursor: move; }
-.delete-box { position: absolute; top: -10px; right: -10px; background: red; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; text-align: center; line-height: 20px; cursor: pointer; border: 1px solid white; }
+.redact-rect { position:absolute; border:2px dashed #ff0000; background:rgba(0,0,0,0.85); touch-action:none; z-index: 10; cursor: move; }
+.delete-box { position: absolute; top: -10px; right: -10px; background: #ef4444; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 14px; text-align: center; line-height: 18px; cursor: pointer; border: 1px solid white; font-weight: bold; }
 
-.action-btn { padding:12px 24px; border:none; border-radius:8px; background:var(--primary); color:#fff; cursor:pointer; margin:5px; font-weight: bold; transition: 0.3s; }
-.action-btn:hover { opacity: 0.9; transform: scale(1.03); }
-.home-btn { display:inline-block; margin:10px; padding:12px 26px; background:#444; color:#fff; text-decoration:none; font-weight:bold; border-radius: 8px; font-size: 14px; }
+.action-btn { padding:10px 20px; border:none; border-radius:6px; background:var(--primary); color:#fff; cursor:pointer; margin:5px; font-weight: bold; font-size: 13px; }
+.home-btn { display:inline-block; margin:5px; padding:10px 20px; background:#444; color:#fff; text-decoration:none; font-weight:bold; border-radius: 6px; font-size: 13px; }
 
-#toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--primary); color:#fff; padding:12px 25px; border-radius:8px; display:none; z-index:99999; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+#toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); background:var(--primary); color:#fff; padding:10px 20px; border-radius:6px; display:none; z-index:99999; font-size: 14px; }
 </style>
 </head>
 <body>
 
 <div id="push-notification" onclick="window.open('https://easyusehub.blogspot.com', '_blank')">
+    <span class="close-push" onclick="event.stopPropagation(); document.getElementById('push-notification').classList.remove('active');">&times;</span>
     <img src="https://cdn-icons-png.flaticon.com/512/5968/5968313.png" alt="icon">
     <div class="push-text">
-        <b>🚀 46+ Premium Free Tools Ready!</b>
+        <b>🚀 46+ Pro Tools Ready!</b>
         <p>PDF Tools, Calculators & more - 100% Free.</p>
     </div>
 </div>
@@ -70,12 +77,12 @@ h1{text-align:center; margin:20px; color: #333;}
 
 <div class="custom-ad-bridge" onclick="window.open('https://easyusehub.blogspot.com', '_blank')">
     <span class="ad-title">🚀 Try 46+ Premium Free Web Tools!</span>
-    <span class="ad-desc">All PDF TOOLS, Calculators, BMI Tracker & more - 100% Free</span>
+    <span class="ad-desc">All PDF TOOLS, 16+ Calculators, Age & BMI Tracker - 100% Free</span>
     <div class="ad-btn">Open EasyUseHub</div>
 </div>
 
 <div id="instructions">
-  Instructions: Upload PDF, select a page, add redact boxes over sensitive info, then download. (Max 20MB)
+  ✨ Instructions: Upload PDF, select page, add redact boxes over info, then download.
 </div>
 
 <div id="upload-box">📁 Click to Upload PDF (Max 20MB)</div>
@@ -83,13 +90,13 @@ h1{text-align:center; margin:20px; color: #333;}
 
 <div id="page-thumbnails"></div>
 
-<div id="editor-container" style="display:none; width: 100%; text-align: center;">
+<div id="editor-container" style="display:none; width: 100%;">
     <div id="pdf-viewer"></div>
-    <div class="controls">
-        <button class="action-btn" id="prev-page" style="background:#444;">⬅ Prev</button>
-        <button class="action-btn" id="next-page" style="background:#444;">Next ➡</button>
-        <button class="action-btn" id="add-box" style="background:#f59e0b;">➕ Add Redact Box</button>
-        <button class="action-btn" id="download-pdf">📥 Download Redacted PDF</button>
+    <div class="controls" style="margin-bottom: 20px;">
+        <button class="action-btn" id="prev-page" style="background:#666;">⬅ Prev</button>
+        <button class="action-btn" id="next-page" style="background:#666;">Next ➡</button>
+        <button class="action-btn" id="add-box" style="background:#f59e0b;">➕ Add Box</button>
+        <button class="action-btn" id="download-pdf">📥 Download Redacted</button>
     </div>
 </div>
 
@@ -101,13 +108,13 @@ h1{text-align:center; margin:20px; color: #333;}
 
 <div class="custom-ad-bridge" style="background: linear-gradient(135deg, #f59e0b, #d97706);" onclick="window.open('https://easyusehub.blogspot.com/p/ultimate-calculators-hub.html', '_blank')">
     <span class="ad-title">🔢 Smart Online Calculators</span>
-    <span class="ad-desc">All Premium Calculators ready for you - 100% Free</span>
+    <span class="ad-desc">Loan EMI, Age & BMI Tracker - 100% Free</span>
     <div class="ad-btn" style="background: #000; color: #fff;">Open Calculators</div>
 </div>
 
-<div style="margin-bottom: 30px;">
-    <a href="https://easyusehub.blogspot.com/p/free-pdf-tools-online.html" class="home-btn">📂 All PDF Tools</a>
-    <a href="https://easyusehub.blogspot.com/" class="home-btn">🏠 Home</a>
+<div style="margin-bottom: 40px;">
+    <a href="https://easyusehub.blogspot.com/p/free-pdf-tools-online.html" class="home-btn" style="background:#10b981;">📂 All PDF Tools</a>
+    <a href="https://easyusehub.blogspot.com/" class="home-btn" style="background:#f59e0b;">🏠 Home</a>
 </div>
 
 <div id="toast">✅ Redacted PDF Downloaded!</div>
@@ -125,32 +132,26 @@ const toast = document.getElementById('toast');
 
 let pdfDoc = null, pdfBytes = null, currentPage = 1, scale = 1;
 let canvas = null;
-let redactions = {}; // { pageNum: [ {x, y, w, h} ] }
+let redactions = {}; 
 
 uploadBox.onclick = () => fileInput.click();
 
 fileInput.addEventListener('change', async e => {
   const file = e.target.files[0];
   if(!file) return;
-
-  if(file.size > 20 * 1024 * 1024) {
-      alert("❌ File exceeds 20MB limit.");
-      fileInput.value = "";
-      return;
-  }
+  if(file.size > 20 * 1024 * 1024) { alert("❌ Max 20MB."); return; }
 
   pdfBytes = await file.arrayBuffer();
   pdfDoc = await pdfjsLib.getDocument({data: pdfBytes}).promise;
-  pageThumbnails.innerHTML = '<p style="width:100%; color:#666; font-weight:bold;">Select a page to redact:</p>';
+  pageThumbnails.innerHTML = '';
   uploadBox.style.display = "none";
   document.getElementById('editor-container').style.display = "block";
 
   for(let i=1; i<=pdfDoc.numPages; i++){
     const page = await pdfDoc.getPage(i);
-    const viewport = page.getViewport({scale:0.2});
+    const viewport = page.getViewport({scale:0.15});
     const thumbCanvas = document.createElement('canvas');
-    thumbCanvas.width = viewport.width;
-    thumbCanvas.height = viewport.height;
+    thumbCanvas.width = viewport.width; thumbCanvas.height = viewport.height;
     await page.render({canvasContext: thumbCanvas.getContext('2d'), viewport}).promise;
     
     const thumbDiv = document.createElement('div');
@@ -160,24 +161,20 @@ fileInput.addEventListener('change', async e => {
     pageThumbnails.appendChild(thumbDiv);
   }
   renderPage(1);
-  setTimeout(() => { document.getElementById('push-notification').classList.add('active'); }, 2000);
+  setTimeout(() => { document.getElementById('push-notification').classList.add('active'); }, 1500);
 });
 
 async function renderPage(pageNum){
   const page = await pdfDoc.getPage(pageNum);
-  const baseViewport = page.getViewport({scale:1});
   const containerWidth = Math.min(pdfViewer.clientWidth - 20, 750);
-  scale = containerWidth / baseViewport.width;
+  scale = containerWidth / page.getViewport({scale:1}).width;
   const viewport = page.getViewport({scale:scale});
-
   pdfViewer.innerHTML = '';
   canvas = document.createElement('canvas');
-  canvas.width = viewport.width;
-  canvas.height = viewport.height;
+  canvas.width = viewport.width; canvas.height = viewport.height;
   await page.render({canvasContext:canvas.getContext('2d'), viewport}).promise;
   pdfViewer.appendChild(canvas);
 
-  // Restore saved redaction boxes for this page
   if(redactions[pageNum]){
     redactions[pageNum].forEach((data, index) => {
         createBoxUI(data.x * scale + canvas.offsetLeft, data.y * scale + canvas.offsetTop, data.w * scale, data.h * scale, index);
@@ -188,15 +185,12 @@ async function renderPage(pageNum){
 function createBoxUI(left, top, width, height, index) {
     const box = document.createElement('div');
     box.className = 'redact-rect';
-    box.style.left = left + 'px';
-    box.style.top = top + 'px';
-    box.style.width = width + 'px';
-    box.style.height = height + 'px';
+    box.style.left = left + 'px'; box.style.top = top + 'px';
+    box.style.width = width + 'px'; box.style.height = height + 'px';
     box.dataset.index = index;
 
     const del = document.createElement('div');
-    del.className = 'delete-box';
-    del.innerHTML = '×';
+    del.className = 'delete-box'; del.innerHTML = '×';
     del.onclick = (e) => {
         e.stopPropagation();
         redactions[currentPage].splice(box.dataset.index, 1);
@@ -211,8 +205,7 @@ function createBoxUI(left, top, width, height, index) {
             const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
             const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
             target.style.transform = `translate(${x}px, ${y}px)`;
-            target.setAttribute('data-x', x);
-            target.setAttribute('data-y', y);
+            target.setAttribute('data-x', x); target.setAttribute('data-y', y);
             saveBoxData(target);
         } },
         modifiers: [ interact.modifiers.restrictRect({ restriction: canvas }) ]
@@ -238,38 +231,32 @@ function saveBoxData(el) {
     const idx = el.dataset.index;
     if(!redactions[currentPage]) redactions[currentPage] = [];
     redactions[currentPage][idx] = {
-        x: (rect.left - cRect.left) / scale,
-        y: (rect.top - cRect.top) / scale,
-        w: rect.width / scale,
-        h: rect.height / scale
+        x: (rect.left - cRect.left) / scale, y: (rect.top - cRect.top) / scale,
+        w: rect.width / scale, h: rect.height / scale
     };
 }
 
 addBoxBtn.onclick = () => {
     if(!redactions[currentPage]) redactions[currentPage] = [];
     const newIdx = redactions[currentPage].length;
-    const newData = { x: 50, y: 50, w: 150, h: 50 };
+    const newData = { x: 50, y: 50, w: 120, h: 40 };
     redactions[currentPage].push(newData);
-    createBoxUI(50 * scale + canvas.offsetLeft, 50 * scale + canvas.offsetTop, 150 * scale, 50 * scale, newIdx);
+    createBoxUI(50 * scale + canvas.offsetLeft, 50 * scale + canvas.offsetTop, 120 * scale, 40 * scale, newIdx);
 };
 
 prevBtn.onclick = () => { if(currentPage > 1) { currentPage--; renderPage(currentPage); } };
 nextBtn.onclick = () => { if(currentPage < pdfDoc.numPages) { currentPage++; renderPage(currentPage); } };
 
 downloadBtn.onclick = async () => {
-    downloadBtn.disabled = true;
-    downloadBtn.innerText = "Applying Redactions...";
+    downloadBtn.disabled = true; downloadBtn.innerText = "Processing...";
     try {
         const pdfLibDoc = await PDFLib.PDFDocument.load(pdfBytes);
         for(let pNum in redactions) {
             const page = pdfLibDoc.getPage(parseInt(pNum) - 1);
             redactions[pNum].forEach(box => {
                 page.drawRectangle({
-                    x: box.x,
-                    y: page.getHeight() - box.y - box.h,
-                    width: box.w,
-                    height: box.h,
-                    color: PDFLib.rgb(0, 0, 0) // Pure Black for security
+                    x: box.x, y: page.getHeight() - box.y - box.h,
+                    width: box.w, height: box.h, color: PDFLib.rgb(0, 0, 0)
                 });
             });
         }
@@ -279,13 +266,9 @@ downloadBtn.onclick = async () => {
         a.href = URL.createObjectURL(blob);
         a.download = `Redacted_EasyUseHub_${Date.now()}.pdf`;
         a.click();
-        toast.style.display = 'block';
-        setTimeout(() => { toast.style.display = 'none'; }, 3000);
-    } catch(e) {
-        alert("Error saving PDF.");
-    } finally {
-        downloadBtn.disabled = false;
-        downloadBtn.innerText = "📥 Download Redacted PDF";
+        toast.style.display = 'block'; setTimeout(() => { toast.style.display = 'none'; }, 3000);
+    } catch(e) { alert("Error!"); } finally {
+        downloadBtn.disabled = false; downloadBtn.innerText = "📥 Download Redacted";
     }
 };
 </script>
